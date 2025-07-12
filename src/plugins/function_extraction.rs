@@ -28,16 +28,17 @@ use crate::storage::LingoDatabase;
 use crate::engine::LingoExecutor;
 use crate::morphology::{decompose_word_to_morphemes, calculate_composed_position, 
                         preprocess_text, MorphemeAnalysis};
-use crate::mirroring::{MirroringDecomposer, PatternType, 
-                       SynthesisResult as MirroringSynthesis, MirrorPair as MirroringMirror,
-                       MirrorType as MirroringMirrorType};
+// Mirroring temporarily disabled
+// use crate::mirroring::{MirroringDecomposer, PatternType, 
+//                        SynthesisResult as MirroringSynthesis, MirrorPair as MirroringMirror,
+//                        MirrorType as MirroringMirrorType};
 use super::{Plugin, PluginContext, PluginResult, PluginError, PluginEnhancement};
 
 /// Function extraction plugin
 pub struct FunctionExtractor {
     database_path: Option<String>,
     executor: Option<LingoExecutor>,
-    mirroring_decomposer: Option<MirroringDecomposer>,
+    // mirroring_decomposer: Option<MirroringDecomposer>, // Temporarily disabled
     confidence_threshold: f32,
     spatial_coherence_weight: f32,
     morphological_weight: f32,
@@ -48,7 +49,7 @@ impl FunctionExtractor {
         Self {
             database_path: None,
             executor: None,
-            mirroring_decomposer: None,
+            // mirroring_decomposer: None, // Temporarily disabled
             confidence_threshold: 0.5,
             spatial_coherence_weight: 0.3,
             morphological_weight: 0.7,
@@ -89,13 +90,9 @@ impl FunctionExtractor {
         all_primitives.extend(sequence_primitives);
         all_primitives.extend(purpose_primitives);
         
-        // Step 3: Enhanced analysis with mirroring decomposer
+        // Step 3: Enhanced analysis with mirroring decomposer (temporarily disabled)
         let (synthesis_opportunities, mirror_analysis, negation_transforms, morphological_confidence) = 
-            if let Some(decomposer) = &mut self.mirroring_decomposer {
-                Self::enhanced_analysis_with_mirroring(text, &all_primitives, decomposer)?
-            } else {
-                (Vec::new(), Vec::new(), Vec::new(), 0.0)
-            };
+            (Vec::new(), Vec::new(), Vec::new(), 0.0);
         
         // Step 4: Calculate spatial coherence
         let spatial_coherence = Self::calculate_spatial_coherence(&all_primitives);
@@ -129,7 +126,8 @@ impl FunctionExtractor {
         })
     }
     
-    /// Enhanced analysis using mirroring decomposer
+    /// Enhanced analysis using mirroring decomposer (temporarily disabled)
+    /*
     fn enhanced_analysis_with_mirroring(
         text: &str,
         primitives: &[FunctionalPrimitive],
@@ -160,28 +158,8 @@ impl FunctionExtractor {
                         MirroringMirrorType::Complementary => MirrorType::Complementary,
                         MirroringMirrorType::Gradable => MirrorType::Gradable,
                         MirroringMirrorType::Directional => MirrorType::Directional,
-                        // Handle new etymological mirror types
-                        MirroringMirrorType::EtymologicalOpposite { .. } => MirrorType::EtymologicalOpposite { 
-                            root_family: crate::mirroring::EtymologyFamily::Latin, 
-                            semantic_distance: 0.5 
-                        },
-                        MirroringMirrorType::FunctionalOpposite { .. } => MirrorType::FunctionalOpposite { 
-                            role_inversion: crate::mirroring::RoleType::Agent, 
-                            domain_context: "general".to_string() 
-                        },
-                        MirroringMirrorType::MorphologicalOpposite { .. } => MirrorType::MorphologicalOpposite { 
-                            valid_negation: crate::mirroring::NegationType::Prefix("un".to_string()), 
-                            productivity_score: 0.5 
-                        },
-                        MirroringMirrorType::CrossLinguisticMirror { .. } => MirrorType::CrossLinguisticMirror { 
-                            source_etymology: crate::core::EtymologyOrigin::Latin, 
-                            target_etymology: crate::core::EtymologyOrigin::Germanic, 
-                            borrowing_pattern: crate::mirroring::BorrowingType::Direct 
-                        },
-                        MirroringMirrorType::SpatialOpposite { .. } => MirrorType::SpatialOpposite { 
-                            vector_opposition: crate::core::Coordinate3D::new(0.5, 0.5, 0.5), 
-                            clustering_confidence: 0.7 
-                        },
+                        // Handle simplified mirror types
+                        _ => MirrorType::Complementary, // Default for unhandled types
                     },
                     confidence: mirror.confidence,
                 });
@@ -224,6 +202,7 @@ impl FunctionExtractor {
         
         Ok((synthesis_opportunities, mirror_analysis, negation_transforms, morphological_confidence))
     }
+    */
     
     /// Detect negation patterns in text
     fn detect_negations(text: &str) -> Vec<NegationAnalysis> {
@@ -822,20 +801,20 @@ impl Plugin for FunctionExtractor {
         
         self.executor = Some(executor);
         
-        // Initialize mirroring decomposer for enhanced capabilities
-        let db_arc = Arc::new(LingoDatabase::open("english.lingo")
-            .map_err(|e| PluginError::InitializationFailed {
-                plugin: "function_extraction".to_string(),
-                error: format!("Failed to open database for mirroring: {}", e),
-            })?);
-            
-        let mirroring_decomposer = MirroringDecomposer::new(db_arc)
-            .map_err(|e| PluginError::InitializationFailed {
-                plugin: "function_extraction".to_string(),
-                error: format!("Failed to create mirroring decomposer: {}", e),
-            })?;
-            
-        self.mirroring_decomposer = Some(mirroring_decomposer);
+        // Initialize mirroring decomposer for enhanced capabilities (temporarily disabled)
+        // let db_arc = Arc::new(LingoDatabase::open("english.lingo")
+        //     .map_err(|e| PluginError::InitializationFailed {
+        //         plugin: "function_extraction".to_string(),
+        //         error: format!("Failed to open database for mirroring: {}", e),
+        //     })?);
+        //     
+        // let mirroring_decomposer = MirroringDecomposer::new(db_arc)
+        //     .map_err(|e| PluginError::InitializationFailed {
+        //         plugin: "function_extraction".to_string(),
+        //         error: format!("Failed to create mirroring decomposer: {}", e),
+        //     })?;
+        //     
+        // self.mirroring_decomposer = Some(mirroring_decomposer);
         
         Ok(())
     }
@@ -967,23 +946,19 @@ pub enum MirrorType {
     Complementary, // teacher/student, employer/employee
     Gradable,      // hot/cold, big/small
     Directional,   // up/down, in/out
-    // New etymological mirror types
+    // Simplified mirror types for now
     EtymologicalOpposite { 
-        root_family: crate::mirroring::EtymologyFamily, 
         semantic_distance: f32 
     },
     FunctionalOpposite { 
-        role_inversion: crate::mirroring::RoleType, 
         domain_context: String 
     },
     MorphologicalOpposite { 
-        valid_negation: crate::mirroring::NegationType, 
         productivity_score: f32 
     },
     CrossLinguisticMirror { 
-        source_etymology: crate::core::EtymologyOrigin, 
-        target_etymology: crate::core::EtymologyOrigin, 
-        borrowing_pattern: crate::mirroring::BorrowingType 
+        source_lang: String,
+        target_lang: String
     },
     SpatialOpposite { 
         vector_opposition: crate::core::Coordinate3D, 

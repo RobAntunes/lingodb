@@ -298,20 +298,20 @@ impl EtymologicalMirrorEngine {
                 .compile()
         )?;
         
-        let word_node_id = word_result.nodes.first()
-            .ok_or_else(|| crate::core::error::LingoError::NotFound("Word not found".to_string()))?;
+        let word_node_id = word_result.nodes.as_slice().first()
+            .ok_or_else(|| crate::core::error::LingoError::WordNotFound("Word not found".to_string()))?;
         
         let word_node = self.db.get_node(*word_node_id)?;
         
         // Get morphological breakdown to roots
         let morpheme_result = executor.execute(
-            &QueryBuilder::load_node(*word_node_id)
+            &QueryBuilder::load(*word_node_id)
                 .layer_down() // Go to morphemes
                 .compile()
         )?;
         
         // Extract etymology data for each morpheme
-        let etymology_data = morpheme_result.nodes.iter()
+        let etymology_data = morpheme_result.nodes.as_slice().iter()
             .map(|&node_id| {
                 let morpheme_node = self.db.get_node(node_id).unwrap();
                 EtymologyData {
@@ -329,7 +329,7 @@ impl EtymologicalMirrorEngine {
             primary_etymology: word_node.etymology_origin,
             morpheme_etymologies: etymology_data,
             semantic_position: word_node.position,
-            root_concepts: self.extract_root_concepts(&morpheme_result.nodes),
+            root_concepts: self.extract_root_concepts(morpheme_result.nodes.as_slice()),
         })
     }
     
@@ -399,7 +399,7 @@ impl EtymologicalMirrorEngine {
         );
         
         if let Ok(result) = word_result {
-            if let Some(&word_node_id) = result.nodes.first() {
+            if let Some(&word_node_id) = result.nodes.as_slice().first() {
                 if let Ok(word_node) = self.db.get_node(word_node_id) {
                     return self.find_spatial_opposites_for_position(word, word_node.position);
                 }
@@ -431,7 +431,7 @@ impl EtymologicalMirrorEngine {
         );
         
         if let Ok(result) = spatial_result {
-            result.nodes.iter()
+            result.nodes.as_slice().iter()
                 .filter_map(|&candidate_id| self.db.get_node(candidate_id).ok())
                 .map(|candidate| EtymologicalMirror {
                     original: word.to_string(),
@@ -524,8 +524,8 @@ impl EtymologicalMirrorEngine {
     
     // Helper methods for implementation
     fn get_surface_form(&self, node: &LinguisticNode) -> String {
-        self.db.get_string(node.word_offset as usize, node.word_length as usize)
-            .unwrap_or_default()
+        self.db.get_string(node.word_offset, node.word_length)
+            .unwrap_or_default().to_string()
     }
     
     fn extract_root_meaning(&self, _node: &LinguisticNode) -> String {
@@ -696,7 +696,7 @@ pub struct OppositionEngine<'a> {
 
 impl<'a> OppositionEngine<'a> {
     pub fn new(db: &'a LingoDatabase) -> Self {
-        let engine = EtymologicalMirrorEngine::new(Arc::new(db.clone()));
+        let engine = EtymologicalMirrorEngine::new(Arc::new((*db).clone()));
         Self {
             engine,
             _phantom: std::marker::PhantomData,

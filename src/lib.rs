@@ -153,7 +153,7 @@ pub mod config;
 pub mod ffi;
 pub mod plugins;
 pub mod morphology;
-pub mod mirroring;
+// pub mod mirroring; // Temporarily disabled due to compilation issues
 
 // WebAssembly bindings (only compiled for WASM target)
 #[cfg(target_arch = "wasm32")]

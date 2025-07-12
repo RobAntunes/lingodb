@@ -34,11 +34,13 @@ use crate::core::{LinguisticNode, NodeId};
 use crate::storage::LingoDatabase;
 
 pub mod function_extraction;
+pub mod intent_detection;
 pub mod registry;
 
 // Re-export public types
 pub use registry::{PluginRegistry, PluginError};
 pub use function_extraction::{FunctionExtractor, FunctionSignature, FunctionalPrimitive};
+pub use intent_detection::{IntentDetector, Intent, PragmaticOperators};
 
 /// Core plugin trait that all plugins must implement
 pub trait Plugin: Send + Sync + Any {
