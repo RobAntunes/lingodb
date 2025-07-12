@@ -66,4 +66,4 @@ book/
 # Temporary files
 *.tmp
 *.temp
-*.spec.md
+# *.spec.md
