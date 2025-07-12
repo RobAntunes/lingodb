@@ -1,0 +1,61 @@
+[package]
+name = "lingo"
+version = "0.1.0"
+edition = "2021"
+authors = ["Roberto Antunes <roberto@antunes.dev>"]
+description = "Revolutionary 3D spatial linguistic database with orthogonal connections"
+repository = "https://github.com/RobAntunes/lingodb"
+license-file = "LICENSE"
+readme = "README.md"
+keywords = ["linguistics", "database", "nlp", "morphology", "semantic-search"]
+categories = ["database", "text-processing", "science"]
+
+[dependencies]
+# Core dependencies
+memmap2 = "0.9"
+bitflags = "2.4"
+lru = "0.12"
+
+# Serialization
+bincode = "1.3"
+serde = { version = "1.0", features = ["derive"] }
+
+# Hashing and checksums
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+log = "0.4"
+
+# System directories
+dirs = "5.0"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+tempfile = "3.8"
+rand = "0.8"
+env_logger = "0.11"
+
+[[bench]]
+name = "performance"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+
+[profile.bench]
+lto = true
+codegen-units = 1
+
+[[example]]
+name = "build_db"
+path = "examples/build_db.rs"
+
+[[example]]
+name = "query_demo"
+path = "examples/query_demo.rs"
