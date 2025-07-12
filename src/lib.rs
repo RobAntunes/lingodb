@@ -151,11 +151,19 @@ pub mod discovery;
 pub mod data;
 pub mod config;
 pub mod ffi;
+pub mod plugins;
+pub mod morphology;
+pub mod mirroring;
+
+// WebAssembly bindings (only compiled for WASM target)
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
 
 pub use crate::core::{LinguisticNode, OrthogonalConnection, Coordinate3D};
 pub use crate::query::QueryBuilder;
 pub use crate::storage::Database;
 pub use crate::engine::LingoExecutor;
+pub use crate::plugins::{PluginPipeline, Plugin, FunctionExtractor};
 
 /// Library version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

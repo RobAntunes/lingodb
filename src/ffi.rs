@@ -46,10 +46,8 @@ use std::os::raw::{c_char, c_int, c_uint, c_float};
 use std::ptr;
 use std::panic;
 
-use crate::core::{NodeId, Layer, EtymologyOrigin, NodeFlags};
 use crate::engine::{LingoExecutor, QueryResult};
 use crate::query::{QueryBuilder, CompiledQuery};
-use crate::storage::MemoryMappedDatabase;
 
 /// FFI error codes
 #[repr(C)]

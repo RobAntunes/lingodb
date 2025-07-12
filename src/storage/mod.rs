@@ -76,3 +76,6 @@ pub use builder::DatabaseBuilder;
 
 // Re-export commonly used types
 pub use self::mmap::Database;
+
+// Re-export for plugins module
+pub use self::mmap::MemoryMappedDatabase as LingoDatabase;

@@ -4,7 +4,7 @@ use std::ops::{Add, Sub, Mul, Div};
 
 /// 3D coordinate in linguistic space
 #[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Coordinate3D {
     /// Phonetic/Acoustic similarity space (0.0-1.0)
     /// 0.0 = consonant-heavy, 1.0 = vowel-heavy

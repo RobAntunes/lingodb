@@ -32,7 +32,7 @@ use bitflags::bitflags;
 /// assert_eq!(node.id, NodeId(42));
 /// ```
 #[repr(C, packed)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct LinguisticNode {
     /// 3D spatial position (12 bytes)
     pub position: Coordinate3D,
@@ -157,7 +157,7 @@ impl LinguisticNode {
 /// assert_eq!(word_layer.z_center(), (z_min + z_max) / 2.0);
 /// ```
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub enum Layer {
     /// Individual characters, digraphs (Layer 0)
     Letters = 0,
@@ -248,7 +248,7 @@ bitflags! {
     /// flags.insert(NodeFlags::IS_TECHNICAL);
     /// assert!(flags.contains(NodeFlags::IS_TECHNICAL));
     /// ```
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
     pub struct NodeFlags: u8 {
         /// End of word/concept
         const IS_TERMINAL = 0b00000001;
@@ -291,7 +291,7 @@ bitflags! {
 /// assert_eq!(y_base, 0.4);
 /// ```
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum EtymologyOrigin {
     /// Germanic origin
     Germanic = 0,
@@ -377,7 +377,7 @@ impl EtymologyOrigin {
 /// assert_eq!(root.composition_weight(), 0.6); // Highest weight
 /// ```
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum MorphemeType {
     /// Root morpheme
     Root = 0,
@@ -391,6 +391,12 @@ pub enum MorphemeType {
     Circumfix = 4,
     /// Compound element
     Compound = 5,
+    /// Agent suffix (e.g., -er, -or, -ist)
+    AgentSuffix = 6,
+    /// Verb suffix (e.g., -ize, -fy, -ate)
+    VerbSuffix = 7,
+    /// Tense suffix (e.g., -ed, -ing, -s)
+    TenseSuffix = 8,
 }
 
 impl MorphemeType {
@@ -421,6 +427,9 @@ impl MorphemeType {
             MorphemeType::Infix => 0.3,
             MorphemeType::Circumfix => 0.3,
             MorphemeType::Compound => 0.5,
+            MorphemeType::AgentSuffix => 0.2,
+            MorphemeType::VerbSuffix => 0.2,
+            MorphemeType::TenseSuffix => 0.1,
         }
     }
 }

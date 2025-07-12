@@ -4,7 +4,7 @@ use std::fmt;
 
 /// Unique identifier for a linguistic node
 #[repr(transparent)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub struct NodeId(pub u32);
 
 impl NodeId {

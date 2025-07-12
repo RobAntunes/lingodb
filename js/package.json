@@ -1,0 +1,48 @@
+{
+  "name": "@lingo/core",
+  "version": "0.1.0",
+  "description": "Revolutionary 3D spatial linguistic database with orthogonal connections",
+  "author": "Roberto Antunes <roberto@antunes.dev>",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "homepage": "https://github.com/RobAntunes/lingodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RobAntunes/lingodb.git"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --target nodejs --out-dir js/pkg ../",
+    "build:web": "wasm-pack build --target web --out-dir js/pkg-web ../",
+    "build:bundler": "wasm-pack build --target bundler --out-dir js/pkg-bundler ../",
+    "build:all": "npm run build && npm run build:web && npm run build:bundler",
+    "test": "jest",
+    "prepublishOnly": "npm run build:all"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  },
+  "keywords": [
+    "linguistics",
+    "database",
+    "nlp", 
+    "morphology",
+    "semantic-search",
+    "webassembly",
+    "wasm",
+    "rust"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

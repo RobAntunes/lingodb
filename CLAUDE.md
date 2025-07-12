@@ -1,0 +1,4 @@
+  - LINGO is compositional - it stores letters, phonemes, and morphemes, NOT complete words
+  - Words are composed from these building blocks
+  - No hardcoding - everything must emerge from the data
+  - We DO NOT need Cira related features right now

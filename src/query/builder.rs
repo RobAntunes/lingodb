@@ -45,6 +45,10 @@ pub enum Operation {
     Limit(usize),
     /// Remove duplicates
     Deduplicate,
+    /// Decompose word into morphemes (opposite of compose)
+    Decompose,
+    /// Find nodes within radius of a specific 3D point
+    SpatialRadiusFromPoint { center: crate::core::Coordinate3D, radius: f32 },
 }
 
 /// Defines criteria for filtering query results.
@@ -236,6 +240,32 @@ impl QueryBuilder {
         }
     }
     
+    /// Creates a new query starting with a specific node ID.
+    /// 
+    /// Alias for find_by_id for more intuitive API when loading known nodes.
+    ///
+    /// # Arguments
+    ///
+    /// * `node_id` - The NodeId to load
+    ///
+    /// # Returns
+    ///
+    /// A new `QueryBuilder` instance with the specified node loaded.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use lingo::{QueryBuilder, NodeId};
+    ///
+    /// let node_id = NodeId(12345);
+    /// let query = QueryBuilder::load(node_id)
+    ///     .decompose()  // Break into morphemes
+    ///     .compile();
+    /// ```
+    pub fn load(node_id: crate::core::NodeId) -> Self {
+        Self::find_by_id(node_id.0)
+    }
+    
     /// Finds nodes similar to the current result set.
     ///
     /// Uses spatial proximity in 3D space to find semantically related nodes.
@@ -329,6 +359,39 @@ impl QueryBuilder {
         self
     }
     
+    /// Find nodes within a radius of a specific 3D coordinate point.
+    ///
+    /// This is useful for finding words with specific semantic properties based on 
+    /// their position in the 3D linguistic space.
+    ///
+    /// # Arguments
+    ///
+    /// * `center` - The 3D coordinate to search around
+    /// * `radius` - Search radius (0.0 to 1.0)
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use lingo::{QueryBuilder, Coordinate3D};
+    ///
+    /// let center = Coordinate3D::new(0.5, 0.3, 0.55);
+    /// let query = QueryBuilder::spatial_radius_from_point(center, 0.2)
+    ///     .compile();
+    /// ```
+    pub fn spatial_radius_from_point(center: crate::core::Coordinate3D, radius: f32) -> Self {
+        Self {
+            operations: vec![Operation::SpatialRadiusFromPoint { center, radius }],
+            hints: OptimizationHints {
+                needs_spatial_index: true,
+                ..Default::default()
+            },
+        }
+    }
+    
     /// Moves up one layer in the linguistic hierarchy.
     ///
     /// This follows vertical connections to parent nodes in the layer above.
@@ -387,6 +450,35 @@ impl QueryBuilder {
     pub fn layer_down_n(mut self, levels: u8) -> Self {
         self.operations.push(Operation::LayerDown(levels));
         self.hints.needs_vertical_index = true;
+        self
+    }
+    
+    /// Set to a specific layer
+    ///
+    /// This operation filters results to only include nodes from the specified layer.
+    /// Unlike layer_up/layer_down which navigate relationships, this directly
+    /// filters by layer membership.
+    ///
+    /// # Arguments
+    ///
+    /// * `layer` - The target layer to filter by
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use lingo::{QueryBuilder, Layer};
+    ///
+    /// // Find only morpheme nodes containing "manage"
+    /// let query = QueryBuilder::find("manage")
+    ///     .layer(Layer::Morphemes)
+    ///     .compile();
+    /// ```
+    pub fn layer(mut self, layer: Layer) -> Self {
+        self.operations.push(Operation::LayerSet(layer));
         self
     }
     
@@ -506,6 +598,33 @@ impl QueryBuilder {
     /// Remove duplicate nodes
     pub fn deduplicate(mut self) -> Self {
         self.operations.push(Operation::Deduplicate);
+        self
+    }
+    
+    /// Decomposes the current nodes into their constituent morphemes.
+    ///
+    /// This is the inverse of composition - it breaks down words into their
+    /// morphological components (roots, prefixes, suffixes). For each word node
+    /// in the current result set, this operation finds all morphemes that
+    /// compose it by following the layer-down connections.
+    ///
+    /// # Returns
+    ///
+    /// Self for method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use lingo::QueryBuilder;
+    ///
+    /// // Decompose "manager" into ["manage", "-er"]
+    /// let query = QueryBuilder::find("manager")
+    ///     .decompose()
+    ///     .compile();
+    /// ```
+    pub fn decompose(mut self) -> Self {
+        self.operations.push(Operation::Decompose);
+        self.hints.needs_vertical_index = true;
         self
     }
     
@@ -703,7 +822,33 @@ impl QueryCompiler {
                 bytecode.push(SlangInstruction::new(SlangOp::Deduplicate));
             }
             
-            Operation::Filter(_) | Operation::Sort(_) | Operation::LayerSet(_) => {
+            Operation::Decompose => {
+                // Decompose is essentially a layer_down operation specifically for morphemes
+                bytecode.push(SlangInstruction::with_operand1(
+                    SlangOp::LayerDown,
+                    1, // Go down one layer from words to morphemes
+                ));
+            }
+            
+            Operation::LayerSet(layer) => {
+                bytecode.push(SlangInstruction::with_operand1(
+                    SlangOp::LayerSet,
+                    layer as u16,
+                ));
+            }
+            
+            Operation::SpatialRadiusFromPoint { center, radius } => {
+                // Encode the 3D coordinate and radius into the instruction
+                bytecode.push(SlangInstruction::with_all_operands(
+                    SlangOp::SpatialNeighbors, // Reuse existing spatial operation
+                    0, // Flags
+                    ((center.x * 255.0) as u8 as u16) | (((center.y * 255.0) as u8 as u16) << 8), // X,Y coordinates packed
+                    ((center.z * 65535.0) as u32), // Z coordinate
+                    radius.to_bits(), // Radius as bits
+                ));
+            }
+            
+            Operation::Filter(_) | Operation::Sort(_) => {
                 // TODO: Implement filter and sort compilation
                 // For now, these are no-ops
             }

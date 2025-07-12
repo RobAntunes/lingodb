@@ -1,0 +1,317 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "created": "2025-07-12",
+    "description": "Comprehensive linguistic seed data for LINGO database",
+    "total_constructs": 3200,
+    "languages_covered": ["Latin", "Greek", "Germanic", "French"]
+  },
+  
+  "phoneme_features": {
+    "consonant_places": [
+      "bilabial", "labiodental", "dental", "alveolar", 
+      "postalveolar", "retroflex", "palatal", "velar", "glottal"
+    ],
+    "consonant_manners": [
+      "stop", "fricative", "affricate", "nasal", 
+      "lateral", "approximant", "trill", "tap"
+    ],
+    "vowel_dimensions": {
+      "height": ["high", "mid", "low"],
+      "frontness": ["front", "central", "back"],
+      "rounding": ["rounded", "unrounded"],
+      "tenseness": ["tense", "lax"]
+    },
+    "prosodic_features": ["stress", "tone", "length"]
+  },
+
+  "etymology_expansions": {
+    "latin_roots": {
+      "agricultural": ["agr", "cult", "rural", "pastor", "hort"],
+      "military": ["milit", "bell", "arm", "fort", "strat"],
+      "legal": ["leg", "jur", "judic", "crim", "just"],
+      "medical": ["med", "san", "cur", "vit", "mort"],
+      "commercial": ["merc", "vend", "empt", "pret", "numer"],
+      "social": ["soci", "pop", "civ", "urb", "dom"],
+      "temporal": ["temp", "chron", "ann", "dies", "horar"],
+      "spatial": ["loc", "situ", "reg", "terr", "spat"],
+      "cognitive": ["ment", "cogn", "sci", "intel", "sapient"],
+      "emotional": ["am", "od", "tim", "ir", "dolor"]
+    },
+    
+    "greek_roots": {
+      "scientific": ["sci", "techn", "method", "theor", "hypoth"],
+      "mathematical": ["math", "arithm", "geometr", "calc", "algor"],
+      "philosophical": ["phil", "soph", "eth", "log", "metaphys"],
+      "biological": ["bio", "zoo", "botan", "gen", "physi"],
+      "psychological": ["psych", "path", "neur", "cogn", "behav"],
+      "technological": ["mechan", "electron", "digit", "cyber", "automat"],
+      "artistic": ["art", "aesthet", "music", "poet", "dramat"],
+      "political": ["pol", "dem", "crat", "arch", "hegemon"],
+      "economic": ["econom", "chrem", "oik", "emport", "capital"],
+      "religious": ["the", "hier", "sacr", "myst", "ritual"]
+    },
+
+    "germanic_roots": {
+      "basic_actions": ["work", "make", "take", "give", "help", "keep", "hold"],
+      "movement": ["go", "come", "run", "walk", "drive", "ride", "fly"],
+      "communication": ["say", "tell", "speak", "talk", "ask", "call", "write"],
+      "cognitive": ["think", "know", "learn", "understand", "remember", "forget"],
+      "emotional": ["love", "like", "want", "need", "hope", "fear", "worry"],
+      "social": ["friend", "family", "neighbor", "stranger", "enemy", "ally"],
+      "temporal": ["time", "day", "night", "year", "old", "new", "early", "late"],
+      "spatial": ["here", "there", "up", "down", "in", "out", "over", "under"],
+      "qualities": ["good", "bad", "big", "small", "strong", "weak", "fast", "slow"],
+      "natural": ["water", "fire", "earth", "air", "tree", "stone", "metal"]
+    }
+  },
+
+  "opposition_networks": {
+    "dimensional_opposites": {
+      "size": [
+        ["big", "small"], ["large", "tiny"], ["huge", "minuscule"], 
+        ["massive", "minute"], ["giant", "microscopic"]
+      ],
+      "speed": [
+        ["fast", "slow"], ["quick", "sluggish"], ["rapid", "gradual"],
+        ["swift", "leisurely"], ["hasty", "deliberate"]
+      ],
+      "direction": [
+        ["up", "down"], ["forward", "backward"], ["left", "right"],
+        ["north", "south"], ["east", "west"], ["in", "out"]
+      ],
+      "temporal": [
+        ["early", "late"], ["past", "future"], ["old", "new"],
+        ["ancient", "modern"], ["before", "after"], ["start", "end"]
+      ],
+      "quality": [
+        ["good", "bad"], ["positive", "negative"], ["beautiful", "ugly"],
+        ["strong", "weak"], ["smart", "stupid"], ["rich", "poor"]
+      ]
+    },
+
+    "functional_opposites": {
+      "agency_pairs": [
+        ["leader", "follower"], ["teacher", "student"], ["doctor", "patient"],
+        ["seller", "buyer"], ["employer", "employee"], ["master", "servant"],
+        ["creator", "destroyer"], ["builder", "demolisher"], ["maker", "breaker"]
+      ],
+      "action_pairs": [
+        ["create", "destroy"], ["build", "demolish"], ["construct", "deconstruct"],
+        ["organize", "disorganize"], ["centralize", "decentralize"], 
+        ["accelerate", "decelerate"], ["expand", "contract"], ["rise", "fall"]
+      ],
+      "state_pairs": [
+        ["order", "chaos"], ["peace", "war"], ["health", "sickness"],
+        ["wealth", "poverty"], ["freedom", "slavery"], ["knowledge", "ignorance"],
+        ["light", "darkness"], ["heat", "cold"], ["wet", "dry"]
+      ]
+    },
+
+    "cross_linguistic_opposites": {
+      "latin_greek": [
+        ["create", "chaos"], ["order", "anarchos"], ["structure", "amorph"],
+        ["rational", "pathos"], ["method", "chaos"]
+      ],
+      "latin_germanic": [
+        ["construct", "break"], ["produce", "waste"], ["advance", "retreat"],
+        ["attract", "repel"], ["unite", "split"]
+      ],
+      "greek_germanic": [
+        ["organize", "mess"], ["technical", "simple"], ["complex", "plain"],
+        ["systematic", "random"], ["logical", "wild"]
+      ]
+    }
+  },
+
+  "morphological_patterns": {
+    "agent_formation": {
+      "high_productivity": [
+        {
+          "pattern": "{verb} + er",
+          "etymology": "Germanic", 
+          "examples": ["work+er", "teach+er", "manage+er", "develop+er"],
+          "semantic_constraints": ["active_agent", "habitual_action"],
+          "spatial_vector": [0.8, 0.8, 0.6]
+        },
+        {
+          "pattern": "{noun} + ist", 
+          "etymology": "Greek",
+          "examples": ["art+ist", "special+ist", "techn+ologist"],
+          "semantic_constraints": ["professional", "practitioner", "advocate"],
+          "spatial_vector": [0.8, 0.5, 0.6]
+        }
+      ],
+      "medium_productivity": [
+        {
+          "pattern": "{verb} + ant",
+          "etymology": "Latin",
+          "examples": ["assist+ant", "consult+ant", "particip+ant"],
+          "semantic_constraints": ["active_participant", "temporary_role"],
+          "spatial_vector": [0.8, 0.6, 0.6]
+        }
+      ]
+    },
+
+    "action_formation": {
+      "causative_patterns": [
+        {
+          "pattern": "{adjective} + ize",
+          "etymology": "Greek",
+          "examples": ["modern+ize", "central+ize", "character+ize"],
+          "semantic_function": "make_become",
+          "spatial_vector": [0.6, 0.8, 0.6]
+        },
+        {
+          "pattern": "{noun} + ify", 
+          "etymology": "Latin",
+          "examples": ["class+ify", "spec+ify", "ident+ify"],
+          "semantic_function": "make_into",
+          "spatial_vector": [0.6, 0.7, 0.6]
+        }
+      ],
+      "reversive_patterns": [
+        {
+          "pattern": "de + {verb}",
+          "etymology": "Latin", 
+          "examples": ["de+construct", "de+centralize", "de+regulate"],
+          "semantic_function": "reverse_action",
+          "spatial_vector": [0.2, 0.2, 0.6]
+        },
+        {
+          "pattern": "un + {verb}",
+          "etymology": "Germanic",
+          "examples": ["un+do", "un+lock", "un+wrap"],
+          "semantic_function": "reverse_action", 
+          "spatial_vector": [0.1, 0.1, 0.6]
+        }
+      ]
+    },
+
+    "quality_formation": {
+      "capability_patterns": [
+        {
+          "pattern": "{verb} + able",
+          "etymology": "Latin",
+          "examples": ["manage+able", "scale+able", "predict+able"],
+          "semantic_function": "capable_of_being",
+          "spatial_vector": [0.4, 0.8, 0.6]
+        },
+        {
+          "pattern": "{verb} + ible", 
+          "etymology": "Latin",
+          "examples": ["respons+ible", "flex+ible", "vis+ible"],
+          "semantic_function": "capable_of_being",
+          "spatial_vector": [0.4, 0.7, 0.6]
+        }
+      ],
+      "abundance_patterns": [
+        {
+          "pattern": "{noun} + ful",
+          "etymology": "Germanic", 
+          "examples": ["help+ful", "use+ful", "success+ful"],
+          "semantic_function": "full_of",
+          "spatial_vector": [0.4, 0.5, 0.6]
+        },
+        {
+          "pattern": "{noun} + ous",
+          "etymology": "Latin",
+          "examples": ["danger+ous", "fame+ous", "vigor+ous"], 
+          "semantic_function": "characterized_by",
+          "spatial_vector": [0.4, 0.6, 0.6]
+        }
+      ]
+    }
+  },
+
+  "domain_vocabularies": {
+    "technology": {
+      "core_roots": ["techn", "digit", "cyber", "data", "algorithm", "system"],
+      "agent_roles": ["developer", "architect", "engineer", "analyst", "administrator"],
+      "actions": ["code", "debug", "deploy", "optimize", "integrate", "automate"],
+      "qualities": ["scalable", "reliable", "efficient", "secure", "responsive"],
+      "spatial_cluster": [0.9, 0.8, 0.8]
+    },
+    
+    "business": {
+      "core_roots": ["manage", "market", "finance", "strategy", "operation", "customer"],
+      "agent_roles": ["manager", "executive", "analyst", "consultant", "entrepreneur"],
+      "actions": ["plan", "execute", "analyze", "optimize", "negotiate", "innovate"],
+      "qualities": ["profitable", "strategic", "competitive", "sustainable", "scalable"],
+      "spatial_cluster": [0.9, 0.5, 0.7]
+    },
+
+    "science": {
+      "core_roots": ["research", "experiment", "hypothesis", "theory", "method", "data"],
+      "agent_roles": ["scientist", "researcher", "analyst", "theorist", "experimenter"],
+      "actions": ["hypothesize", "test", "analyze", "discover", "validate", "publish"],
+      "qualities": ["empirical", "rigorous", "systematic", "reproducible", "significant"],
+      "spatial_cluster": [0.4, 0.9, 0.8]
+    },
+
+    "creative": {
+      "core_roots": ["create", "design", "art", "aesthetic", "imagination", "inspiration"],
+      "agent_roles": ["artist", "designer", "creator", "innovator", "visionary"],
+      "actions": ["create", "design", "imagine", "inspire", "express", "innovate"],
+      "qualities": ["creative", "innovative", "aesthetic", "original", "expressive"],
+      "spatial_cluster": [0.6, 0.8, 0.8]
+    }
+  },
+
+  "validation_patterns": {
+    "morphological_constraints": {
+      "phonological_rules": [
+        "No three consecutive consonants without vowel intervention",
+        "Stress typically falls on root syllable in compounds",
+        "Vowel harmony constraints in certain morpheme combinations"
+      ],
+      "semantic_constraints": [
+        "Agent suffixes require action or state root",
+        "Causative suffixes require state or quality root", 
+        "Negation prefixes maintain semantic category"
+      ],
+      "etymological_constraints": [
+        "Latin suffixes typically combine with Latin roots",
+        "Greek suffixes typically combine with Greek roots",
+        "Germanic suffixes are most flexible across etymologies"
+      ]
+    },
+
+    "opposition_validity": {
+      "semantic_criteria": [
+        "Opposites must be in same semantic dimension",
+        "Opposition strength correlates with spatial distance",
+        "Functional opposites require role complementarity"
+      ],
+      "morphological_criteria": [
+        "Morphological opposites must share root etymology",
+        "Prefix-based opposites require compatible morphology",
+        "Compound opposites maintain semantic coherence"
+      ]
+    }
+  },
+
+  "expansion_points": {
+    "additional_languages": {
+      "romance": ["French", "Spanish", "Italian", "Portuguese"],
+      "celtic": ["Irish", "Welsh", "Scottish"],
+      "slavic": ["Russian", "Polish", "Czech"],
+      "semitic": ["Hebrew", "Arabic"],
+      "east_asian": ["Chinese", "Japanese", "Korean"]
+    },
+    
+    "specialized_domains": {
+      "medical": ["anatomy", "pathology", "pharmacology", "surgery"],
+      "legal": ["constitutional", "criminal", "commercial", "international"],
+      "financial": ["banking", "investment", "insurance", "trading"],
+      "academic": ["mathematics", "physics", "chemistry", "biology"]
+    },
+
+    "contemporary_vocabulary": {
+      "digital_age": ["cloud", "blockchain", "AI", "IoT", "virtual", "crypto"],
+      "social_media": ["viral", "trending", "influencer", "content", "platform"],
+      "startup_culture": ["disrupt", "pivot", "scale", "iterate", "validate"],
+      "remote_work": ["distributed", "asynchronous", "collaborative", "digital"]
+    }
+  }
+}

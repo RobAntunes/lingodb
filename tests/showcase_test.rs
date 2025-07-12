@@ -1,10 +1,14 @@
 //! Showcase test suite that displays the Lingo database in action!
 
 use lingo::core::*;
-use lingo::storage::{DatabaseBuilder, MemoryMappedDatabase};
+use lingo::storage::{DatabaseBuilder, MemoryMappedDatabase, LingoDatabase};
 use lingo::query::QueryBuilder;
 use lingo::engine::LingoExecutor;
+use lingo::plugins::function_extraction::FunctionExtractor;
+use lingo::plugins::Plugin;
+use lingo::mirroring::MirroringDecomposer;
 use tempfile::TempDir;
+use std::sync::Arc;
 
 /// Print a fancy header
 fn print_header(title: &str) {
@@ -395,4 +399,282 @@ fn test_showcase_lingo_database() {
     
     print_header("LINGO DATABASE SHOWCASE COMPLETE!");
     println!("\n🎉 The revolutionary linguistic database is discovering connections!\n");
+}
+
+#[test]
+fn test_showcase_function_extraction_demo() {
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("function_demo.lingo");
+    
+    // Create a simpler database focused on function extraction
+    create_function_demo_database(db_path.to_str().unwrap()).unwrap();
+    
+    // Load the database
+    let database = LingoDatabase::open(db_path.to_str().unwrap()).unwrap();
+    
+    print_header("🚀 ENHANCED FUNCTION EXTRACTION DEMO");
+    println!("\n🧬 Demonstrating bidirectional morphological composition & mirroring...\n");
+    
+    // Initialize function extractor with mirroring capabilities
+    let mut extractor = FunctionExtractor::new();
+    extractor.initialize(&database).unwrap();
+    
+    // Test cases that showcase the enhanced capabilities
+    let test_cases = vec![
+        "I don't want a technical co-founder, looking for someone business-focused instead",
+        "The manager organized the meeting efficiently",
+        "We need a developer who can architect scalable systems",
+        "The startup is not looking for investors but rather mentors",
+        "She became the lead designer after demonstrating creative solutions",
+    ];
+    
+    for (i, text) in test_cases.iter().enumerate() {
+        print_section(&format!("Test Case {}: Enhanced Analysis", i + 1));
+        println!("📝 Input: \"{}\"", text);
+        
+        match extractor.extract_function_signature(text) {
+            Ok(signature) => {
+                println!("\n🎯 EXTRACTION RESULTS:");
+                println!("   • Base Confidence: {:.2}", signature.confidence);
+                println!("   • Morphological Confidence: {:.2}", signature.morphological_confidence);
+                println!("   • Functional Primitives Found: {}", signature.primitives.len());
+                println!("   • Execution Time: {:.2}ms", signature.execution_time_ms);
+                
+                // Show functional primitives
+                if !signature.primitives.is_empty() {
+                    println!("\n🔧 FUNCTIONAL PRIMITIVES:");
+                    for (j, primitive) in signature.primitives.iter().enumerate() {
+                        match primitive {
+                            lingo::plugins::function_extraction::FunctionalPrimitive::Agency { capability_level, .. } => {
+                                println!("   [{:2}] Agency (capability: {:.2})", j + 1, capability_level);
+                            },
+                            lingo::plugins::function_extraction::FunctionalPrimitive::Action { intensity, .. } => {
+                                println!("   [{:2}] Action (intensity: {:.2})", j + 1, intensity);
+                            },
+                            lingo::plugins::function_extraction::FunctionalPrimitive::Transformation { reversibility, .. } => {
+                                println!("   [{:2}] Transformation (reversibility: {:.2})", j + 1, reversibility);
+                            },
+                            _ => {
+                                println!("   [{:2}] Other functional primitive", j + 1);
+                            }
+                        }
+                    }
+                }
+                
+                // Show mirroring analysis
+                if !signature.mirror_analysis.is_empty() {
+                    println!("\n🪞 MIRROR ANALYSIS:");
+                    for (j, mirror) in signature.mirror_analysis.iter().enumerate() {
+                        println!("   [{:2}] \"{}\" ↔ \"{}\" (type: {:?}, confidence: {:.2})", 
+                                j + 1, mirror.original, mirror.mirror, mirror.mirror_type, mirror.confidence);
+                    }
+                } else {
+                    println!("\n🪞 MIRROR ANALYSIS: No mirrors found");
+                }
+                
+                // Show negation transforms
+                if !signature.negation_transforms.is_empty() {
+                    println!("\n❌ NEGATION ANALYSIS:");
+                    for (j, negation) in signature.negation_transforms.iter().enumerate() {
+                        println!("   [{:2}] Negated: \"{}\" (type: {:?})", 
+                                j + 1, negation.negated_concept, negation.negation_type);
+                        println!("       Reason: {}", negation.negation_reason);
+                    }
+                } else {
+                    println!("\n❌ NEGATION ANALYSIS: No negations detected");
+                }
+                
+                // Show synthesis opportunities (if any)
+                if !signature.synthesis_opportunities.is_empty() {
+                    println!("\n⚡ SYNTHESIS OPPORTUNITIES:");
+                    for (j, synthesis) in signature.synthesis_opportunities.iter().enumerate() {
+                        println!("   [{:2}] Generated: \"{}\" (confidence: {:.2})", 
+                                j + 1, synthesis.generated_word, synthesis.confidence);
+                    }
+                } else {
+                    println!("\n⚡ SYNTHESIS OPPORTUNITIES: Framework ready, implementation pending");
+                }
+                
+            },
+            Err(e) => {
+                println!("❌ Error: {:?}", e);
+            }
+        }
+        
+        println!("\n{}", "─".repeat(80));
+    }
+}
+
+#[test] 
+fn test_showcase_mirroring_decomposer_demo() {
+    print_header("🪞 MIRRORING DECOMPOSER DEMONSTRATION");
+    println!("\n🧬 Showcasing bidirectional morphological composition...\n");
+    
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("mirroring_demo.lingo");
+    
+    // Create database for mirroring demo
+    create_function_demo_database(db_path.to_str().unwrap()).unwrap();
+    let database = LingoDatabase::open(db_path.to_str().unwrap()).unwrap();
+    
+    // Initialize mirroring decomposer
+    let mut decomposer = MirroringDecomposer::new(Arc::new(database)).unwrap();
+    
+    let test_words = vec![
+        "manager",
+        "technical", 
+        "developer",
+        "organize",
+        "create",
+        "business",
+    ];
+    
+    for (i, word) in test_words.iter().enumerate() {
+        print_section(&format!("Word Analysis {}: \"{}\"", i + 1, word));
+        
+        // Test decomposition
+        println!("🔬 MORPHOLOGICAL DECOMPOSITION:");
+        let morphemes = decomposer.decompose(word);
+        if !morphemes.is_empty() {
+            println!("   \"{}\" → [{}]", word, 
+                    morphemes.iter()
+                            .map(|m| format!("\"{}\"", m.surface_form))
+                            .collect::<Vec<_>>()
+                            .join(", "));
+            
+            // Show morpheme types
+            for morpheme in &morphemes {
+                println!("   • \"{}\" (type: {:?})", morpheme.surface_form, morpheme.morpheme_type);
+            }
+        } else {
+            println!("   No morphological decomposition found");
+        }
+        
+        // Test round-trip validation
+        println!("\n🔄 ROUND-TRIP VALIDATION:");
+        let validation = decomposer.validate_decomposition_quality(word);
+        println!("   • Round-trip Success: {}", validation.round_trip_success);
+        println!("   • Spatial Consistency: {:.3}", validation.spatial_consistency_score);
+        println!("   • Morpheme Coherence: {:.3}", validation.morpheme_coherence);
+        
+        if !validation.alternative_compositions.is_empty() {
+            println!("   • Alternative Compositions: [{}]", 
+                    validation.alternative_compositions.join(", "));
+        }
+        
+        // Test mirror discovery
+        println!("\n🪞 MIRROR DISCOVERY:");
+        let mirrors = decomposer.find_mirrors(word);
+        if !mirrors.is_empty() {
+            for mirror in &mirrors {
+                println!("   \"{}\" ↔ \"{}\" (type: {:?}, confidence: {:.2})", 
+                        mirror.original, mirror.mirror, mirror.mirror_type, mirror.confidence);
+            }
+        } else {
+            println!("   No mirrors found for \"{}\"", word);
+        }
+        
+        println!("\n{}", "─".repeat(60));
+    }
+    
+    // Demonstrate composition capabilities
+    print_section("Composition Demonstration");
+    println!("🔧 MORPHEME COMPOSITION:");
+    
+    let composition_tests = vec![
+        vec!["manage".to_string(), "er".to_string()],
+        vec!["develop".to_string(), "er".to_string()],
+        vec!["organize".to_string(), "ing".to_string()],
+    ];
+    
+    for (i, morphemes) in composition_tests.iter().enumerate() {
+        println!("\n  Test {}: [{}] →", i + 1, morphemes.join(", "));
+        let compositions = decomposer.compose(morphemes);
+        if !compositions.is_empty() {
+            for composition in &compositions {
+                println!("    ✓ \"{}\"", composition);
+            }
+        } else {
+            println!("    ❌ No valid compositions found");
+        }
+    }
+}
+
+/// Create a database focused on function extraction demo
+fn create_function_demo_database(path: &str) -> error::Result<()> {
+    let mut builder = DatabaseBuilder::new();
+    
+    print_header("BUILDING FUNCTION EXTRACTION DEMO DATABASE");
+    
+    // Core morphemes for agency detection
+    print_section("Agency Morphemes");
+    let manage_morph = builder.add_node_full(
+        "manage", Layer::Morphemes, Coordinate3D { x: 0.3, y: 0.2, z: 0.3 },
+        EtymologyOrigin::Latin, MorphemeType::Root, NodeFlags::IS_PRODUCTIVE)?;
+    let er_suffix = builder.add_node_full(
+        "er", Layer::Morphemes, Coordinate3D { x: 0.35, y: 0.25, z: 0.3 },
+        EtymologyOrigin::Germanic, MorphemeType::AgentSuffix, NodeFlags::IS_PRODUCTIVE)?;
+    let develop_morph = builder.add_node_full(
+        "develop", Layer::Morphemes, Coordinate3D { x: 0.4, y: 0.2, z: 0.3 },
+        EtymologyOrigin::French, MorphemeType::Root, NodeFlags::IS_PRODUCTIVE)?;
+    let lead_morph = builder.add_node_full(
+        "lead", Layer::Morphemes, Coordinate3D { x: 0.45, y: 0.2, z: 0.3 },
+        EtymologyOrigin::Germanic, MorphemeType::Root, NodeFlags::IS_PRODUCTIVE)?;
+    println!("  ✓ Added: manage, er, develop, lead");
+    
+    // Action morphemes
+    print_section("Action Morphemes");
+    let organize_morph = builder.add_node_full(
+        "organize", Layer::Morphemes, Coordinate3D { x: 0.5, y: 0.2, z: 0.3 },
+        EtymologyOrigin::Greek, MorphemeType::Root, NodeFlags::IS_PRODUCTIVE)?;
+    let create_morph = builder.add_node_full(
+        "create", Layer::Morphemes, Coordinate3D { x: 0.55, y: 0.2, z: 0.3 },
+        EtymologyOrigin::Latin, MorphemeType::Root, NodeFlags::IS_PRODUCTIVE)?;
+    let architect_morph = builder.add_node_full(
+        "architect", Layer::Morphemes, Coordinate3D { x: 0.6, y: 0.2, z: 0.3 },
+        EtymologyOrigin::Greek, MorphemeType::Root, NodeFlags::IS_PRODUCTIVE)?;
+    println!("  ✓ Added: organize, create, architect");
+    
+    // Technical vs business morphemes
+    print_section("Domain Morphemes");
+    let tech_morph = builder.add_node_full(
+        "tech", Layer::Morphemes, Coordinate3D { x: 0.2, y: 0.3, z: 0.3 },
+        EtymologyOrigin::Greek, MorphemeType::Prefix, NodeFlags::IS_TECHNICAL)?;
+    let business_morph = builder.add_node_full(
+        "business", Layer::Morphemes, Coordinate3D { x: 0.8, y: 0.3, z: 0.3 },
+        EtymologyOrigin::Germanic, MorphemeType::Root, NodeFlags::IS_PRODUCTIVE)?;
+    println!("  ✓ Added: tech, business");
+    
+    // Build agent words
+    print_section("Agent Words");
+    let manager = builder.add_node_full(
+        "manager", Layer::Words, Coordinate3D { x: 0.32, y: 0.35, z: 0.4 },
+        EtymologyOrigin::Latin, MorphemeType::Compound, NodeFlags::IS_FREQUENT)?;
+    let developer = builder.add_node_full(
+        "developer", Layer::Words, Coordinate3D { x: 0.42, y: 0.35, z: 0.4 },
+        EtymologyOrigin::French, MorphemeType::Compound, NodeFlags::IS_TECHNICAL)?;
+    let leader = builder.add_node_full(
+        "leader", Layer::Words, Coordinate3D { x: 0.47, y: 0.35, z: 0.4 },
+        EtymologyOrigin::Germanic, MorphemeType::Compound, NodeFlags::IS_FREQUENT)?;
+    println!("  ✓ Added: manager, developer, leader");
+    
+    // Technical words
+    let technical = builder.add_node_full(
+        "technical", Layer::Words, Coordinate3D { x: 0.22, y: 0.45, z: 0.4 },
+        EtymologyOrigin::Greek, MorphemeType::Compound, NodeFlags::IS_TECHNICAL)?;
+    
+    // Add morphological connections
+    print_section("Morphological Connections");
+    builder.add_connection(manage_morph, manager, ConnectionType::Meronymy, 0.95)?;
+    builder.add_connection(er_suffix, manager, ConnectionType::Meronymy, 0.95)?;
+    builder.add_connection(develop_morph, developer, ConnectionType::Meronymy, 0.95)?;
+    builder.add_connection(er_suffix, developer, ConnectionType::Meronymy, 0.95)?;
+    builder.add_connection(lead_morph, leader, ConnectionType::Meronymy, 0.95)?;
+    builder.add_connection(er_suffix, leader, ConnectionType::Meronymy, 0.95)?;
+    builder.add_connection(tech_morph, technical, ConnectionType::Meronymy, 0.95)?;
+    println!("  ✓ Connected morphemes to words");
+    
+    println!("\n✅ Function demo database complete!");
+    builder.build(path)?;
+    Ok(())
 }
