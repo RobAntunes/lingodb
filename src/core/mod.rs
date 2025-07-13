@@ -73,5 +73,8 @@ pub mod bytecode;
 /// Error types
 pub mod error;
 
+/// Adaptive spatial management
+pub mod adaptive_space;
+
 #[cfg(test)]
 mod tests;

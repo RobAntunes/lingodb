@@ -1,0 +1,85 @@
+📚 LingoDB Textual Analysis Report
+
+============================================================
+
+📊 DATABASE OVERVIEW
+Total nodes: 1168
+
+📈 MORPHEME DISTRIBUTION
+------------------------------------------------------------
+Letters:       26
+Phonemes:      42  
+Morphemes:   1099 total
+  → Prefixes:   39
+  → Suffixes:   37
+  → Roots:    1023
+
+🗺️  SPATIAL LAYOUT (ASCII Visualization)
+------------------------------------------------------------
+
+X-axis distribution (left to right):
+0.0                    0.5                    1.0
+|---------------------|---------------------|
+PREFIXES              ROOTS               SUFFIXES
+(pre,un,dis)       (tech,bio,log)      (tion,er,ness)
+
+Top-down view (X-Y plane):
+Y
+↑
+|PPPP                RRR                 SSS|
+|PPP                RRRR                SSS|
+|PP                RRRRR               SSSS|
+|P                RRRRRR               SSS |
+|                RRRRRRR               SS  |
+|               RRRRRRRR              SS   |
+|              RRRRRRRRR             SS    |
+|             RRRRRRRRRR            S      |
+|            RRRRRRRRRRR           S       |
+|           RRRRRRRRRRRR          S        |
+└────────────────────────────────────────┘→ X
+
+🌍 ETYMOLOGY PATTERNS
+------------------------------------------------------------
+Sample morpheme etymologies:
+      pre → Germanic/Latin
+     post → Germanic/Latin
+     tech → Technical/Modern
+      bio → Technical/Modern
+    graph → Technical/Modern
+       un → Germanic/Latin
+       re → Germanic/Latin
+     tion → Germanic/Latin
+
+🕸️  SEMANTIC NETWORKS
+------------------------------------------------------------
+Key semantic relationships:
+  in ↔ out (spatial opposition): distance = 0.480
+    Midpoint concepts: ["ex", "trans", "macro"]
+  pre ↔ post (temporal opposition): distance = 0.012
+    Midpoint concepts: ["de", "dis", "re"]
+  micro ↔ macro (scale opposition): distance = 0.023
+    Midpoint concepts: ["tele", "mega"]
+  sub ↔ super (hierarchical opposition): distance = 0.012
+    Midpoint concepts: ["trans"]
+
+📊 COVERAGE ANALYSIS
+------------------------------------------------------------
+
+Morphological decomposition test:
+  unhappy         → ✗ Missing: ["happy"]
+  rebuild         → ✗ Missing: ["build"]
+  preview         → ✗ Missing: ["view"]
+  technology      → ✓ All morphemes found: tech-no-log-y
+  biological      → ✓ All morphemes found: bio-log-ical
+  microscope      → ✗ Missing: ["scope"]
+  telephone       → ✗ Missing: ["phone"]
+  submarine       → ✗ Missing: ["marine"]
+  supernatural    → ✗ Missing: ["natural"]
+  antibiotic      → ✓ All morphemes found: anti-bio-tic
+
+Coverage: 17/37 morphemes found (45.9%)
+
+💡 RECOMMENDATIONS:
+- Add more common roots (e.g., 'happy', 'view', 'build')
+- Include bound morphemes (e.g., 'y', 'ical', 'tic')  
+- Add phonological variants (e.g., 'phon' vs 'phone')
