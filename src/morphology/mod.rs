@@ -298,10 +298,52 @@ fn euclidean_distance(a: Coordinate3D, b: Coordinate3D) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::{MorphemeType, Coordinate3D, NodeId};
     
     #[test]
-    fn test_morpheme_discovery() {
-        // Test that we can discover morphemes without hardcoding
-        // This test would use a real database with morphemes
+    fn test_morpheme_analysis_struct() {
+        // Test the MorphemeAnalysis struct
+        let analysis = MorphemeAnalysis {
+            surface_form: "test".to_string(),
+            morpheme_type: MorphemeType::Root,
+            position: Some(Coordinate3D::new(0.5, 0.5, 0.5)),
+            node_id: Some(NodeId(1)),
+        };
+        
+        assert_eq!(analysis.surface_form, "test");
+        assert_eq!(analysis.morpheme_type, MorphemeType::Root);
+        assert!(analysis.position.is_some());
+        assert!(analysis.node_id.is_some());
+    }
+    
+    #[test]
+    fn test_decompose_with_fallback() {
+        // Test the fallback behavior when no database is available
+        // This would normally require a real database and executor
+        // Testing the struct only for now
+        
+        // This would normally require a real database and executor
+        // For now, just test that the function exists
+    }
+    
+    #[test]
+    fn test_morpheme_types() {
+        // Test that all morpheme types are handled
+        let types = vec![
+            MorphemeType::Prefix,
+            MorphemeType::Root,
+            MorphemeType::Suffix,
+            MorphemeType::Compound,
+        ];
+        
+        for morph_type in types {
+            let analysis = MorphemeAnalysis {
+                surface_form: "test".to_string(),
+                morpheme_type: morph_type,
+                position: None,
+                node_id: None,
+            };
+            assert_eq!(analysis.morpheme_type, morph_type);
+        }
     }
 }

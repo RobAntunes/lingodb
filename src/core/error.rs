@@ -74,6 +74,10 @@ pub enum LingoError {
     /// Invalid node ID
     #[error("Invalid node ID: {0:?}")]
     InvalidNodeId(NodeId),
+    
+    /// Security error
+    #[error("Security error: {message}")]
+    SecurityError { message: String },
 }
 
 /// Result type alias for Lingo operations

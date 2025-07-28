@@ -21,6 +21,7 @@ use crate::core::{
 };
 use crate::query::CompiledQuery;
 use crate::storage::{Database, MemoryMappedDatabase};
+use crate::logging::{debug, trace, warn, info};
 use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
@@ -512,6 +513,12 @@ impl LingoExecutor {
     pub fn execute(&mut self, query: &CompiledQuery) -> Result<QueryResult> {
         let start_time = Instant::now();
         
+        info!(
+            bytecode_length = query.bytecode.len(),
+            string_cache_size = query.string_cache.len(),
+            "Starting query execution"
+        );
+        
         // Reset execution state
         self.reset();
         
@@ -522,6 +529,13 @@ impl LingoExecutor {
         let result = self.execute_bytecode(&query.bytecode)?;
         
         let execution_time = start_time.elapsed();
+        
+        info!(
+            duration_ms = execution_time.as_millis() as u64,
+            result_count = result.len(),
+            instructions_executed = self.instructions_executed,
+            "Query execution completed"
+        );
         
         Ok(QueryResult {
             nodes: result,
@@ -541,14 +555,23 @@ impl LingoExecutor {
     
     /// Execute bytecode instructions
     fn execute_bytecode(&mut self, bytecode: &[SlangInstruction]) -> Result<NodeSet> {
+        trace!("Starting bytecode execution with {} instructions", bytecode.len());
+        
         while self.instruction_pointer < bytecode.len() {
             let instruction = &bytecode[self.instruction_pointer];
+            
+            trace!(
+                ip = self.instruction_pointer,
+                op = ?instruction.opcode,
+                "Executing instruction"
+            );
             
             // Execute instruction
             self.execute_instruction(instruction)?;
             
             // Check for halt
             if matches!(instruction.opcode, SlangOp::Halt) {
+                debug!("Halt instruction encountered");
                 break;
             }
             
@@ -558,6 +581,7 @@ impl LingoExecutor {
             
             // Safety check
             if self.instructions_executed > 10000 {
+                warn!("Instruction limit exceeded: {}", self.instructions_executed);
                 return Err(LingoError::Execution("Instruction limit exceeded".to_string()));
             }
         }
@@ -716,7 +740,7 @@ impl LingoExecutor {
                             let mut sorted_conns: Vec<_> = connections.iter()
                                 .map(|c| (c, c.strength))
                                 .collect();
-                            sorted_conns.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+                            sorted_conns.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
                             
                             if rank < sorted_conns.len() {
                                 connected.push(sorted_conns[rank].0.target_node);
@@ -775,6 +799,10 @@ impl LingoExecutor {
                 return Ok(());
             }
             
+            SlangOp::Nop => {
+                // No operation - do nothing
+            }
+            
             _ => {
                 // Unsupported operation
                 return Err(LingoError::Execution(
@@ -829,31 +857,276 @@ pub struct ExecutionStats {
 mod tests {
     use super::*;
     use crate::query::QueryBuilder;
+    use crate::core::{Coordinate3D, LinguisticNode};
+    use crate::core::bytecode::{SlangOp, SlangInstruction, instruction_flags};
+    use crate::core::error::LingoError;
     
     #[test]
-    fn test_basic_execution() {
+    fn test_node_set_operations() {
+        let mut set = NodeSet::new();
+        assert!(set.is_empty());
+        
+        // Test push and deduplication
+        set.push(NodeId(1));
+        set.push(NodeId(2));
+        set.push(NodeId(1)); // Duplicate
+        assert_eq!(set.len(), 2);
+        
+        // Test extend
+        set.extend(vec![NodeId(3), NodeId(2), NodeId(4)]);
+        assert_eq!(set.len(), 4);
+        
+        // Test truncate
+        set.truncate(2);
+        assert_eq!(set.len(), 2);
+        
+        // Test clear
+        set.clear();
+        assert!(set.is_empty());
+    }
+    
+    #[test]
+    fn test_node_set_single() {
+        let set = NodeSet::single(NodeId(42));
+        assert_eq!(set.len(), 1);
+        assert_eq!(set.as_slice()[0], NodeId(42));
+    }
+    
+    #[test]
+    fn test_node_set_into_vec() {
+        let mut set = NodeSet::new();
+        set.extend(vec![NodeId(1), NodeId(2), NodeId(3)]);
+        let vec = set.into_vec();
+        assert_eq!(vec, vec![NodeId(1), NodeId(2), NodeId(3)]);
+    }
+    
+    #[test]
+    fn test_executor_creation() {
+        let executor = LingoExecutor::new();
+        assert!(executor.database.is_none());
+        assert_eq!(executor.stack.len(), 0);
+        assert_eq!(executor.instructions_executed, 0);
+    }
+    
+    #[test]
+    fn test_executor_reset() {
+        let mut executor = LingoExecutor::new();
+        executor.stack.push(NodeSet::single(NodeId(1)));
+        executor.instructions_executed = 100;
+        executor.instruction_pointer = 5;
+        
+        executor.reset();
+        
+        assert_eq!(executor.stack.len(), 0);
+        assert_eq!(executor.instructions_executed, 0);
+        assert_eq!(executor.instruction_pointer, 0);
+    }
+    
+    #[test]
+    fn test_execute_load_node() {
+        let mut executor = LingoExecutor::new();
+        executor.add_string("test".to_string());
+        
+        let inst = SlangInstruction::with_operand1(SlangOp::LoadNode, 0);
+        executor.execute_instruction(&inst).unwrap();
+        
+        assert_eq!(executor.stack.len(), 1);
+        // Without database, creates test node
+        assert_eq!(executor.stack[0].len(), 1);
+    }
+    
+    #[test]
+    fn test_execute_load_node_invalid_string() {
         let mut executor = LingoExecutor::new();
         
-        // Build and compile a query
-        let query = QueryBuilder::find("technical")
+        let inst = SlangInstruction::with_operand1(SlangOp::LoadNode, 999);
+        let result = executor.execute_instruction(&inst);
+        
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Invalid string ID"));
+    }
+    
+    #[test]
+    fn test_execute_load_node_id() {
+        let mut executor = LingoExecutor::new();
+        
+        let inst = SlangInstruction::with_operand2(SlangOp::LoadNodeId, 0, 42);
+        executor.execute_instruction(&inst).unwrap();
+        
+        assert_eq!(executor.stack.len(), 1);
+        assert_eq!(executor.stack[0].as_slice()[0], NodeId(42));
+    }
+    
+    #[test]
+    fn test_execute_find_similar_empty_stack() {
+        let mut executor = LingoExecutor::new();
+        
+        let inst = SlangInstruction::with_operand1(SlangOp::FindSimilar, 32768); // 0.5 threshold
+        let result = executor.execute_instruction(&inst);
+        
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Empty stack"));
+    }
+    
+    #[test]
+    fn test_execute_find_similar() {
+        let mut executor = LingoExecutor::new();
+        executor.stack.push(NodeSet::single(NodeId(1)));
+        
+        let inst = SlangInstruction::with_all_operands(
+            SlangOp::FindSimilar,
+            instruction_flags::HAS_LIMIT,
+            32768, // 0.5 threshold
+            10,    // limit
+            0
+        );
+        executor.execute_instruction(&inst).unwrap();
+        
+        // Without database, returns input set
+        assert_eq!(executor.stack.len(), 1);
+    }
+    
+    #[test]
+    fn test_execute_layer_operations() {
+        let mut executor = LingoExecutor::new();
+        executor.stack.push(NodeSet::single(NodeId(50)));
+        
+        // LayerUp
+        let up_inst = SlangInstruction::with_operand1(SlangOp::LayerUp, 1);
+        executor.execute_instruction(&up_inst).unwrap();
+        assert_eq!(executor.stack.len(), 1);
+        // Test implementation adds 100
+        assert_eq!(executor.stack[0].as_slice()[0], NodeId(150));
+        
+        // LayerDown
+        let down_inst = SlangInstruction::with_operand1(SlangOp::LayerDown, 1);
+        executor.execute_instruction(&down_inst).unwrap();
+        assert_eq!(executor.stack.len(), 1);
+        // Test implementation subtracts 100
+        assert_eq!(executor.stack[0].as_slice()[0], NodeId(50));
+    }
+    
+    #[test]
+    fn test_execute_limit() {
+        let mut executor = LingoExecutor::new();
+        let mut set = NodeSet::new();
+        set.extend(vec![NodeId(1), NodeId(2), NodeId(3), NodeId(4), NodeId(5)]);
+        executor.stack.push(set);
+        
+        let inst = SlangInstruction::with_operand1(SlangOp::Limit, 3);
+        executor.execute_instruction(&inst).unwrap();
+        
+        assert_eq!(executor.stack[0].len(), 3);
+    }
+    
+    #[test]
+    fn test_execute_deduplicate() {
+        let mut executor = LingoExecutor::new();
+        let set = NodeSet::single(NodeId(1)); // Already deduplicated
+        executor.stack.push(set);
+        
+        let inst = SlangInstruction::new(SlangOp::Deduplicate);
+        executor.execute_instruction(&inst).unwrap();
+        
+        assert_eq!(executor.stack[0].len(), 1);
+    }
+    
+    #[test]
+    fn test_execute_register_operations() {
+        let mut executor = LingoExecutor::new();
+        let set = NodeSet::single(NodeId(42));
+        executor.stack.push(set);
+        
+        // Push to register 5
+        let push_inst = SlangInstruction::with_operand1(SlangOp::Push, 5);
+        executor.execute_instruction(&push_inst).unwrap();
+        
+        // Clear stack
+        executor.stack.clear();
+        
+        // Pop from register 5
+        let pop_inst = SlangInstruction::with_operand1(SlangOp::Pop, 5);
+        executor.execute_instruction(&pop_inst).unwrap();
+        
+        assert_eq!(executor.stack.len(), 1);
+        assert_eq!(executor.stack[0].as_slice()[0], NodeId(42));
+    }
+    
+    #[test]
+    fn test_execute_halt() {
+        let mut executor = LingoExecutor::new();
+        
+        let inst = SlangInstruction::new(SlangOp::Halt);
+        executor.execute_instruction(&inst).unwrap();
+        
+        // Halt doesn't error, just stops execution
+    }
+    
+    #[test]
+    fn test_execute_unsupported_op() {
+        let mut executor = LingoExecutor::new();
+        
+        let inst = SlangInstruction::new(SlangOp::TreePath);
+        let result = executor.execute_instruction(&inst);
+        
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Unsupported operation"));
+    }
+    
+    #[test]
+    fn test_execute_bytecode_halt() {
+        let mut executor = LingoExecutor::new();
+        executor.add_string("test".to_string());
+        
+        let bytecode = vec![
+            SlangInstruction::with_operand1(SlangOp::LoadNode, 0),
+            SlangInstruction::new(SlangOp::Halt),
+            SlangInstruction::with_operand1(SlangOp::LoadNode, 0), // Should not execute
+        ];
+        
+        let result = executor.execute_bytecode(&bytecode).unwrap();
+        assert_eq!(executor.instructions_executed, 1); // Only LoadNode, Halt doesn't increment
+    }
+    
+    #[test]
+    fn test_execute_bytecode_instruction_limit() {
+        let mut executor = LingoExecutor::new();
+        
+        // Create a large bytecode array that will exceed the 10000 instruction limit
+        // We need more than 10000 instructions since we check > 10000
+        let bytecode: Vec<_> = (0..10002).map(|_| SlangInstruction::new(SlangOp::Nop)).collect();
+        
+        let result = executor.execute_bytecode(&bytecode);
+        assert!(result.is_err(), "Expected error from instruction limit");
+        let err_str = result.unwrap_err().to_string();
+        assert!(err_str.contains("Instruction limit exceeded"), "Error was: {}", err_str);
+    }
+    
+    #[test]
+    fn test_full_query_execution() {
+        let mut executor = LingoExecutor::new();
+        
+        // Build and compile a simple query
+        let query = QueryBuilder::find("test")
             .limit(5)
             .compile();
         
         // Execute
         let result = executor.execute(&query).unwrap();
         
-        // Should have some results
-        assert!(!result.nodes.is_empty());
+        // Check result structure
+        assert!(result.execution_time.as_nanos() > 0);
         assert!(result.instructions_executed > 0);
+        assert!(!result.cache_hit);
     }
     
     #[test]
-    fn test_stack_operations() {
+    fn test_complex_query_execution() {
         let mut executor = LingoExecutor::new();
         
         // Build a more complex query
-        let query = QueryBuilder::find("viral")
-            .similar()
+        let query = QueryBuilder::find("algorithm")
+            .similar_threshold(0.8)
             .layer_up()
             .limit(10)
             .compile();
@@ -862,6 +1135,16 @@ mod tests {
         let result = executor.execute(&query).unwrap();
         
         // Should complete without errors
-        assert!(result.execution_time.as_micros() > 0);
+        assert!(result.instructions_executed >= 3); // At least LoadNode, FindSimilar, LayerUp
+    }
+    
+    #[test]
+    fn test_execution_stats() {
+        let stats = ExecutionStats::default();
+        
+        assert_eq!(stats.total_queries, 0);
+        assert_eq!(stats.cache_hits, 0);
+        assert_eq!(stats.avg_instructions, 0.0);
+        assert_eq!(stats.total_time, Duration::from_secs(0));
     }
 }

@@ -42,7 +42,6 @@ use serde::{Serialize, Deserialize};
 
 use crate::engine::LingoExecutor;
 use crate::query::{QueryBuilder as CoreQueryBuilder, CompiledQuery};
-use crate::data::DatabaseSeeder;
 
 // Set up panic hook and allocator for WASM
 #[cfg(target_arch = "wasm32")]
@@ -272,11 +271,19 @@ impl LingoDatabase {
     /// Load the standard English database (pre-built)
     #[wasm_bindgen(js_name = loadStandardEnglish)]
     pub fn load_standard_english(&mut self) -> Result<WasmResult, JsValue> {
-        // Create a temporary database with standard English data
-        match self.create_standard_english_database() {
+        // Look for pre-built English database
+        let mut executor = LingoExecutor::new();
+        match executor.load_database("english.lingo") {
             Ok(_) => {
-                let mut executor = LingoExecutor::new();
-                match executor.load_database("temp_english.lingo") {
+                self.executor = Some(executor);
+                Ok(WasmResult {
+                    success: true,
+                    error: None,
+                })
+            }
+            Err(_) => {
+                // Try loading from current directory
+                match executor.load_database("./english.lingo") {
                     Ok(_) => {
                         self.executor = Some(executor);
                         Ok(WasmResult {
@@ -286,14 +293,10 @@ impl LingoDatabase {
                     }
                     Err(e) => Ok(WasmResult {
                         success: false,
-                        error: Some(format!("Failed to load database: {}", e)),
+                        error: Some(format!("Pre-built English database not found. Please ensure 'english.lingo' is available: {}", e)),
                     })
                 }
             }
-            Err(e) => Ok(WasmResult {
-                success: false,
-                error: Some(format!("Failed to create database: {}", e)),
-            })
         }
     }
 
@@ -365,13 +368,6 @@ impl LingoDatabase {
         Ok(stats.into())
     }
 
-    // Helper method to create standard English database
-    fn create_standard_english_database(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let mut seeder = DatabaseSeeder::new();
-        seeder.seed_english()?;
-        seeder.build("temp_english.lingo")?;
-        Ok(())
-    }
 }
 
 /// Static methods for the QueryBuilder

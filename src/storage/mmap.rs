@@ -5,6 +5,8 @@ use crate::core::{
     error::{LingoError, Result},
 };
 use crate::storage::{LingoFileHeader, StringTable};
+use crate::security::validate_path;
+use crate::logging::{debug, info, warn, trace};
 // TODO: Add octree header when fully implemented
 // use crate::index::octree::OctreeHeader;
 use memmap2::{Mmap, MmapOptions};
@@ -41,9 +43,19 @@ pub struct MemoryMappedDatabase {
 impl MemoryMappedDatabase {
     /// Open a Lingo database file
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let path_str = path.as_ref().display().to_string();
+        info!(path = %path_str, "Opening Lingo database");
+        
+        // Validate path for security
+        let safe_path = validate_path(path.as_ref(), None)?;
+        debug!(validated_path = ?safe_path, "Path validated");
+        
         // Open file
-        let file = File::open(path.as_ref())
-            .map_err(|e| LingoError::Io(e))?;
+        let file = File::open(&safe_path)
+            .map_err(|e| {
+                warn!(path = %path_str, error = %e, "Failed to open database file");
+                LingoError::Io(e)
+            })?;
             
         // Memory map the file
         let mmap = unsafe {
@@ -298,7 +310,7 @@ impl MemoryMappedDatabase {
         }
         
         // Sort by distance
-        candidates.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        candidates.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
         
         // Apply limit
         if let Some(limit) = limit {

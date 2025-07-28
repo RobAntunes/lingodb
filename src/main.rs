@@ -1,124 +1,63 @@
 //! Lingo database example
 
 use lingo::{
-    core::{Coordinate3D, Layer, ConnectionType, NodeFlags, EtymologyOrigin, MorphemeType},
-    storage::DatabaseBuilder,
+    QueryBuilder,
+    LingoExecutor,
+    logging,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Building Lingo database example...");
+    // Initialize logging
+    logging::init_logging()?;
     
-    // Create a new database builder
-    let mut builder = DatabaseBuilder::new();
-    builder
-        .set_language("en-US")
-        .set_model_version("1.0.0");
+    println!("🚀 Lingo database query example");
     
-    // Add some example nodes
+    // Create an executor and load a pre-built database
+    let mut executor = LingoExecutor::new();
     
-    // Technical words cluster
-    let technical_id = builder.add_node_full(
-        "technical",
-        Layer::Words,
-        Coordinate3D::new(0.5, 0.8, 0.525), // Greek-influenced, technical domain
-        EtymologyOrigin::Greek,
-        MorphemeType::Root,
-        NodeFlags::IS_TECHNICAL | NodeFlags::IS_FREQUENT,
-    )?;
+    // Try to load the English database
+    match executor.load_database("english.lingo") {
+        Ok(_) => println!("✅ Loaded English database"),
+        Err(e) => {
+            println!("❌ Failed to load database: {}", e);
+            println!("Please ensure 'english.lingo' exists in the current directory");
+            return Ok(());
+        }
+    }
     
-    let technology_id = builder.add_node_full(
-        "technology",
-        Layer::Words,
-        Coordinate3D::new(0.52, 0.8, 0.525),
-        EtymologyOrigin::Greek,
-        MorphemeType::Root,
-        NodeFlags::IS_TECHNICAL | NodeFlags::IS_FREQUENT,
-    )?;
+    // Example queries
+    println!("\n📝 Running example queries...\n");
     
-    let technique_id = builder.add_node_full(
-        "technique",
-        Layer::Words,
-        Coordinate3D::new(0.48, 0.8, 0.525),
-        EtymologyOrigin::Greek,
-        MorphemeType::Root,
-        NodeFlags::IS_TECHNICAL,
-    )?;
+    // Query 1: Find similar words to "technical"
+    let query = QueryBuilder::find("technical")
+        .similar_threshold(0.8)
+        .limit(10)
+        .compile();
     
-    // Add morpheme for "techn-"
-    let techn_morpheme_id = builder.add_node_full(
-        "techn",
-        Layer::Morphemes,
-        Coordinate3D::new(0.5, 0.8, 0.375), // Same X,Y but lower Z (morpheme layer)
-        EtymologyOrigin::Greek,
-        MorphemeType::Root,
-        NodeFlags::IS_PRODUCTIVE,
-    )?;
+    match executor.execute(&query) {
+        Ok(result) => {
+            println!("Query: Find words similar to 'technical'");
+            println!("Found {} node IDs", result.nodes.len());
+            println!("Execution time: {:?}", result.execution_time);
+        }
+        Err(e) => println!("Query failed: {}", e),
+    }
     
-    // Viral concept (cross-domain)
-    let viral_medical_id = builder.add_node_full(
-        "viral",
-        Layer::Words,
-        Coordinate3D::new(0.3, 0.4, 0.525), // Latin origin, medical context
-        EtymologyOrigin::Latin,
-        MorphemeType::Root,
-        NodeFlags::IS_TECHNICAL,
-    )?;
+    // Query 2: Explore morphemes of a word
+    println!("\n");
+    let query = QueryBuilder::find("technology")
+        .layer_down()  // Go to morphemes
+        .limit(10)
+        .compile();
     
-    let viral_marketing_id = builder.add_node_full(
-        "viral",
-        Layer::Words,
-        Coordinate3D::new(0.7, 0.9, 0.525), // Modern usage, business context
-        EtymologyOrigin::Modern,
-        MorphemeType::Root,
-        NodeFlags::IS_FREQUENT,
-    )?;
-    
-    // Add connections
-    
-    // Derivation connections
-    builder.add_connection(
-        techn_morpheme_id,
-        technical_id,
-        ConnectionType::Derivation,
-        0.95,
-    )?;
-    
-    builder.add_connection(
-        techn_morpheme_id,
-        technology_id,
-        ConnectionType::Derivation,
-        0.95,
-    )?;
-    
-    builder.add_connection(
-        techn_morpheme_id,
-        technique_id,
-        ConnectionType::Derivation,
-        0.95,
-    )?;
-    
-    // Semantic connections
-    builder.add_connection(
-        technical_id,
-        technology_id,
-        ConnectionType::Synonymy,
-        0.8,
-    )?;
-    
-    // Cross-domain analogy
-    builder.add_connection(
-        viral_medical_id,
-        viral_marketing_id,
-        ConnectionType::Analogy,
-        0.85,
-    )?;
-    
-    // Build and save the database
-    let db_path = "example.lingo";
-    builder.build(db_path)?;
-    
-    println!("Database built successfully: {}", db_path);
-    println!("File size: {} bytes", std::fs::metadata(db_path)?.len());
+    match executor.execute(&query) {
+        Ok(result) => {
+            println!("Query: Find morphemes in 'technology'");
+            println!("Found {} node IDs", result.nodes.len());
+            println!("Execution time: {:?}", result.execution_time);
+        }
+        Err(e) => println!("Query failed: {}", e),
+    }
     
     Ok(())
 }

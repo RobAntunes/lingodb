@@ -145,6 +145,43 @@ builder.build("enhanced.lingo")?;
 
 ---
 
+## ⚙️ Configuration
+
+Lingo supports configuration through environment variables. Copy `.env.example` to `.env` and customize:
+
+```bash
+# Core settings
+LINGO_DATABASE_PATH=/path/to/database.lingo  # Database file path
+LINGO_LOG_LEVEL=info                         # Log level: trace, debug, info, warn, error
+LINGO_CACHE_SIZE_MB=100                      # Cache size in MB
+LINGO_QUERY_TIMEOUT_SECS=30                  # Query timeout
+
+# Performance
+LINGO_ENABLE_PROFILING=false                 # Enable performance profiling
+LINGO_MAX_RESULT_NODES=10000                 # Maximum query results
+
+# Development
+LINGO_DEBUG=false                            # Enable debug mode
+```
+
+### Using Configuration in Code
+
+```rust
+use lingo::config::LingoConfig;
+
+// Load from environment
+let config = LingoConfig::from_env();
+
+// Or customize
+let config = LingoConfig {
+    database_path: PathBuf::from("custom.lingo"),
+    max_database_size_mb: 200,
+    ..Default::default()
+};
+```
+
+---
+
 ## 🎮 Examples
 
 ### 1. **Morpheme Discovery**

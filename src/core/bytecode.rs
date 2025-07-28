@@ -236,3 +236,114 @@ pub mod instruction_flags {
     /// Include self in results
     pub const INCLUDE_SELF: u8 = 0x08;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_slang_op_values() {
+        // Test operation code values remain stable
+        assert_eq!(SlangOp::LoadNode as u8, 0);
+        assert_eq!(SlangOp::LoadNodeId as u8, 1);
+        assert_eq!(SlangOp::LayerUp as u8, 16);
+        assert_eq!(SlangOp::LayerDown as u8, 17);
+        assert_eq!(SlangOp::FollowConnection as u8, 48);
+        assert_eq!(SlangOp::SpatialNeighbors as u8, 64);
+        assert_eq!(SlangOp::Filter as u8, 128);
+    }
+    
+    #[test]
+    fn test_instruction_creation() {
+        let inst = SlangInstruction::new(SlangOp::LoadNode);
+        // Copy values to avoid unaligned references to packed fields
+        let opcode = inst.opcode;
+        let flags = inst.flags;
+        let operand1 = inst.operand1;
+        let operand2 = inst.operand2;
+        let operand3 = inst.operand3;
+        
+        assert_eq!(opcode, SlangOp::LoadNode);
+        assert_eq!(flags, 0);
+        assert_eq!(operand1, 0);
+        assert_eq!(operand2, 0);
+        assert_eq!(operand3, 0);
+    }
+    
+    #[test]
+    fn test_instruction_with_operands() {
+        let inst1 = SlangInstruction::with_operand1(SlangOp::LoadNodeId, 42);
+        let opcode1 = inst1.opcode;
+        let operand1_1 = inst1.operand1;
+        assert_eq!(opcode1, SlangOp::LoadNodeId);
+        assert_eq!(operand1_1, 42);
+        
+        let inst2 = SlangInstruction::with_operand2(SlangOp::LayerUp, 2, 100);
+        let opcode2 = inst2.opcode;
+        let operand1_2 = inst2.operand1;
+        let operand2_2 = inst2.operand2;
+        assert_eq!(opcode2, SlangOp::LayerUp);
+        assert_eq!(operand1_2, 2);
+        assert_eq!(operand2_2, 100);
+        
+        let inst3 = SlangInstruction::with_all_operands(
+            SlangOp::Filter,
+            instruction_flags::CASE_INSENSITIVE,
+            1,
+            2,
+            3
+        );
+        let opcode3 = inst3.opcode;
+        let flags3 = inst3.flags;
+        let operand1_3 = inst3.operand1;
+        let operand2_3 = inst3.operand2;
+        let operand3_3 = inst3.operand3;
+        assert_eq!(opcode3, SlangOp::Filter);
+        assert_eq!(flags3, instruction_flags::CASE_INSENSITIVE);
+        assert_eq!(operand1_3, 1);
+        assert_eq!(operand2_3, 2);
+        assert_eq!(operand3_3, 3);
+    }
+    
+    #[test]
+    fn test_instruction_size() {
+        // Ensure instruction is compact (important for performance)
+        assert_eq!(std::mem::size_of::<SlangInstruction>(), 12);
+    }
+    
+    #[test]
+    fn test_op_categories() {
+        // Node operations
+        assert!((SlangOp::LoadNode as u8) < 16);
+        assert!((SlangOp::LoadNodeId as u8) < 16);
+        
+        // Layer operations
+        assert!((SlangOp::LayerUp as u8) >= 16 && (SlangOp::LayerUp as u8) < 32);
+        assert!((SlangOp::LayerDown as u8) >= 16 && (SlangOp::LayerDown as u8) < 32);
+        
+        // Tree operations
+        assert!((SlangOp::TreeForward as u8) >= 32 && (SlangOp::TreeForward as u8) < 48);
+        
+        // Orthogonal operations
+        assert!((SlangOp::FollowConnection as u8) >= 48 && (SlangOp::FollowConnection as u8) < 64);
+        
+        // Spatial operations
+        assert!((SlangOp::SpatialNeighbors as u8) >= 64 && (SlangOp::SpatialNeighbors as u8) < 80);
+        
+        // Filter operations (Filter is at 128)
+        assert!((SlangOp::Filter as u8) >= 128);
+    }
+    
+    #[test]
+    fn test_instruction_flags() {
+        assert_eq!(instruction_flags::HAS_LIMIT, 0x01);
+        assert_eq!(instruction_flags::INVERSE, 0x02);
+        assert_eq!(instruction_flags::CASE_INSENSITIVE, 0x04);
+        assert_eq!(instruction_flags::INCLUDE_SELF, 0x08);
+        
+        // Test flag combinations
+        let combined = instruction_flags::HAS_LIMIT | instruction_flags::CASE_INSENSITIVE;
+        assert_eq!(combined, 0x05);
+    }
+    
+}

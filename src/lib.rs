@@ -153,6 +153,8 @@ pub mod config;
 pub mod ffi;
 pub mod plugins;
 pub mod morphology;
+pub mod security;
+pub mod logging;
 // pub mod mirroring; // Temporarily disabled due to compilation issues
 
 // WebAssembly bindings (only compiled for WASM target)

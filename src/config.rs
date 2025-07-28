@@ -1,9 +1,11 @@
 //! Configuration and initialization for Lingo
 
-use crate::data::DatabaseSeeder;
+pub mod env;
+
 use crate::storage::{Database, MemoryMappedDatabase};
 use crate::core::error::Result;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use self::env::EnvConfig;
 
 /// Lingo configuration
 #[derive(Debug, Clone)]
@@ -20,11 +22,25 @@ pub struct LingoConfig {
 
 impl Default for LingoConfig {
     fn default() -> Self {
+        let env_config = EnvConfig::from_env();
         Self {
-            database_path: PathBuf::from("lingo.db"),
+            database_path: env_config.default_database_path(),
             use_standard_english: true,
             enable_auto_discovery: true,
-            max_database_size_mb: 100,
+            max_database_size_mb: env_config.cache_size_mb,
+        }
+    }
+}
+
+impl LingoConfig {
+    /// Create configuration from environment variables
+    pub fn from_env() -> Self {
+        let env_config = EnvConfig::from_env();
+        Self {
+            database_path: env_config.default_database_path(),
+            use_standard_english: env_config.database_path.is_none(),
+            enable_auto_discovery: env_config.debug_mode,
+            max_database_size_mb: env_config.cache_size_mb,
         }
     }
 }
@@ -40,46 +56,23 @@ impl LingoInit {
             println!("📂 Loading existing database: {:?}", config.database_path);
             Ok(MemoryMappedDatabase::open(&config.database_path)?)
         } else if config.use_standard_english {
-            // Create standard English database
-            println!("🌱 Creating standard English database...");
-            Self::create_standard_database(&config.database_path)?;
-            Ok(MemoryMappedDatabase::open(&config.database_path)?)
+            // Look for pre-built English database
+            let english_db_path = PathBuf::from("english.lingo");
+            if english_db_path.exists() {
+                println!("📂 Loading pre-built English database");
+                Ok(MemoryMappedDatabase::open(&english_db_path)?)
+            } else {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Pre-built English database not found. Please provide a database file."
+                ).into());
+            }
         } else {
-            // Create empty database
-            println!("📝 Creating empty database...");
-            Self::create_empty_database(&config.database_path)?;
-            Ok(MemoryMappedDatabase::open(&config.database_path)?)
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "Database file not found. Please provide a database file."
+            ).into());
         }
-    }
-    
-    /// Create standard English database
-    fn create_standard_database(path: &Path) -> Result<()> {
-        let mut seeder = DatabaseSeeder::new();
-        seeder.seed_english()?;
-        seeder.build(path.to_str().unwrap())?;
-        Ok(())
-    }
-    
-    /// Create empty database
-    fn create_empty_database(path: &Path) -> Result<()> {
-        let mut builder = crate::storage::DatabaseBuilder::new();
-        builder.build(path.to_str().unwrap())?;
-        Ok(())
-    }
-    
-    /// Clear and reseed database
-    pub fn reseed_database(path: &Path, seeder_fn: impl FnOnce(&mut DatabaseSeeder) -> Result<()>) -> Result<()> {
-        // Delete existing file
-        if path.exists() {
-            std::fs::remove_file(path)?;
-        }
-        
-        // Create new seeder and apply custom seeding
-        let mut seeder = DatabaseSeeder::new();
-        seeder_fn(&mut seeder)?;
-        seeder.build(path.to_str().unwrap())?;
-        
-        Ok(())
     }
 }
 
@@ -98,17 +91,18 @@ mod tests {
     use tempfile::TempDir;
     
     #[test]
-    fn test_initialize_standard() {
+    fn test_initialize_with_missing_file() {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("test.lingo");
         
         let config = LingoConfig {
             database_path: db_path.clone(),
-            use_standard_english: true,
+            use_standard_english: false, // Don't try to use standard English
             ..Default::default()
         };
         
-        let _db = LingoInit::initialize(&config).unwrap();
-        assert!(db_path.exists());
+        // Should fail because file doesn't exist
+        let result = LingoInit::initialize(&config);
+        assert!(result.is_err());
     }
 }

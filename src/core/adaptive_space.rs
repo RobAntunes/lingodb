@@ -699,6 +699,83 @@ fn rand() -> f32 {
     // Simple pseudo-random for demonstration
     // In production, use a proper RNG
     use std::time::{SystemTime, UNIX_EPOCH};
-    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().subsec_nanos();
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_else(|_| std::time::Duration::from_secs(1))
+        .subsec_nanos();
     (nanos % 1000) as f32 / 1000.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_adaptive_spatial_manager_creation() {
+        let manager = AdaptiveSpatialManager::new();
+        assert_eq!(manager.position_history.len(), 0);
+        assert!(manager.spatial_patterns.type_centroids.is_empty());
+    }
+    
+    #[test]
+    fn test_find_optimal_position() {
+        let mut manager = AdaptiveSpatialManager::new();
+        
+        // Add some history
+        manager.position_history.push((
+            "tech".to_string(),
+            Coordinate3D::new(0.5, 0.8, 0.375),
+            MorphemeType::Root
+        ));
+        
+        let pos = manager.find_optimal_position(
+            "technology",
+            MorphemeType::Root,
+            EtymologyOrigin::Greek,
+            &[]  // Empty semantic hints
+        );
+        
+        // Should be in morpheme layer (approximately)
+        assert!((pos.z - 0.375).abs() < 0.01);
+        // Should have reasonable X,Y coordinates
+        assert!(pos.x >= 0.0 && pos.x <= 1.0);
+        assert!(pos.y >= 0.0 && pos.y <= 1.0);
+    }
+    
+    #[test]
+    fn test_learn_patterns() {
+        let mut manager = AdaptiveSpatialManager::new();
+        
+        // Add some morphemes to learn from
+        manager.position_history.push((
+            "bio".to_string(),
+            Coordinate3D::new(0.3, 0.8, 0.375),
+            MorphemeType::Root
+        ));
+        manager.position_history.push((
+            "geo".to_string(),
+            Coordinate3D::new(0.35, 0.82, 0.375),
+            MorphemeType::Root
+        ));
+        
+        // Convert to format expected by learn_from_database
+        let morphemes: Vec<(String, LinguisticNode)> = vec![];
+        manager.learn_from_database(&morphemes);
+        
+        // Should have updated patterns (though empty input means no change)
+        assert!(manager.spatial_patterns.type_centroids.is_empty());
+    }
+    
+    #[test]
+    fn test_flexibility_params() {
+        let manager = AdaptiveSpatialManager::new();
+        
+        // Check default flexibility values
+        assert!(manager.flexibility.pattern_weight >= 0.0);
+        assert!(manager.flexibility.pattern_weight <= 1.0);
+        assert!(manager.flexibility.min_separation > 0.0);
+        assert!(manager.flexibility.type_deviation > 0.0);
+        assert!(manager.flexibility.learning_rate > 0.0);
+        assert!(manager.flexibility.learning_rate <= 1.0);
+    }
 }

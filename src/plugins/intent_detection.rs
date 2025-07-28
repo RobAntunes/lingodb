@@ -66,7 +66,13 @@ impl IntentDetector {
             })?;
         
         // Step 2: Detect all 9 operator types in parallel
-        let database = LingoDatabase::open(self.database_path.as_ref().unwrap())
+        let db_path = self.database_path.as_ref()
+            .ok_or_else(|| PluginError::InitializationFailed {
+                plugin: "intent_detection".to_string(),
+                error: "Database path not configured".to_string(),
+            })?;
+            
+        let database = LingoDatabase::open(db_path)
             .map_err(|e| PluginError::InitializationFailed {
                 plugin: "intent_detection".to_string(),
                 error: e.to_string(),

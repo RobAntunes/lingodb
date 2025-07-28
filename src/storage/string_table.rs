@@ -204,8 +204,8 @@ mod tests {
         assert_eq!(offset1, offset3); // Should reuse existing string
         assert_ne!(offset1, offset2);
         
-        assert_eq!(table.get_string(offset1, 5).unwrap(), "hello");
-        assert_eq!(table.get_string(offset2, 5).unwrap(), "world");
+        assert_eq!(table.get_string(offset1, 5u16).unwrap(), "hello");
+        assert_eq!(table.get_string(offset2, 5u16).unwrap(), "world");
     }
     
     #[test]
@@ -223,5 +223,93 @@ mod tests {
         
         // Should have "tech" in dictionary
         assert!(compressed.dict_offsets.contains_key("tech"));
+    }
+    
+    #[test]
+    fn test_string_table_capacity() {
+        let mut table = StringTable::new();
+        
+        // Add strings until we exceed initial capacity
+        let mut offsets = Vec::new();
+        for i in 0..100 {
+            let s = format!("string_{}", i);
+            offsets.push(table.add_string(&s).unwrap());
+        }
+        
+        // Verify all strings can be retrieved
+        for (i, offset) in offsets.iter().enumerate() {
+            let expected = format!("string_{}", i);
+            assert_eq!(table.get_string(*offset, expected.len() as u16).unwrap(), expected);
+        }
+    }
+    
+    #[test]
+    fn test_string_table_empty_string() {
+        let mut table = StringTable::new();
+        
+        let offset = table.add_string("").unwrap();
+        assert_eq!(table.get_string(offset, 0u16).unwrap(), "");
+    }
+    
+    #[test]
+    fn test_string_table_invalid_offset() {
+        let table = StringTable::new();
+        
+        // Try to get string from empty table
+        let result = table.get_string(0, 5u16);
+        assert!(result.is_err());
+    }
+    
+    #[test]
+    fn test_string_table_invalid_length() {
+        let mut table = StringTable::new();
+        let offset = table.add_string("hello").unwrap();
+        
+        // Try to read past the end
+        let result = table.get_string(offset, 10u16);
+        assert!(result.is_err());
+    }
+    
+    #[test]
+    fn test_compressed_string_table_build_dictionary() {
+        let mut compressed = CompressedStringTable::new();
+        
+        let corpus = vec![
+            "prefix_one".to_string(),
+            "prefix_two".to_string(),
+            "prefix_three".to_string(),
+            "suffix_one".to_string(),
+            "suffix_two".to_string(),
+        ];
+        
+        compressed.build_dictionary(&corpus, 5);
+        
+        // Should identify common substrings
+        assert!(!compressed.dict_offsets.is_empty());
+        assert!(compressed.dict_offsets.contains_key("prefix") || 
+                compressed.dict_offsets.contains_key("suffix") ||
+                compressed.dict_offsets.contains_key("_"));
+    }
+    
+    #[test]
+    fn test_compressed_string_table_compression_ratio() {
+        let mut compressed = CompressedStringTable::new();
+        
+        // Build corpus with repetitive patterns
+        let mut corpus = Vec::new();
+        for i in 0..20 {
+            corpus.push(format!("test_prefix_{}_suffix", i));
+            corpus.push(format!("test_middle_{}_end", i));
+        }
+        
+        compressed.build_dictionary(&corpus, 10);
+        
+        // Dictionary should find common patterns
+        assert!(compressed.dict_offsets.contains_key("test") || 
+                compressed.dict_offsets.contains_key("_"));
+        
+        // Verify we can still get substrings after dictionary building
+        let offset = compressed.table.add_string("test").unwrap();
+        assert_eq!(compressed.table.get_string(offset, 4u16).unwrap(), "test");
     }
 }
