@@ -6,16 +6,7 @@
 
 _Discover hidden connections in language through geometric intelligence_
 
-[![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
-[![Crates.io](https://img.shields.io/crates/v/lingo)](https://crates.io/crates/lingo)
-
-<!--[![Documentation](https://docs.rs/lingo/badge.svg)](https://docs.rs/lingo)-->
-
 [![License: FSL-1.1-ALv2](https://img.shields.io/badge/License-FSL--1.1--ALv2-lightblue.svg)](LICENSE)
-
-<!--[📖 Documentation](https://docs.rs/lingo) • -->
-
-[🎯 Examples](#-examples) • [🔥 Features](#-features) • [⚡ Quick Start](#-quick-start)
 
 </div>
 
@@ -75,7 +66,6 @@ Each linguistic element exists at precise **3D coordinates**:
 
 ### 🛠 **Developer Friendly**
 
-- **Rust-first** with comprehensive FFI bindings
 - **Fluent query API** with method chaining
 - **Type-safe operations** with compile-time guarantees
 - **Extensive documentation** with code examples
@@ -85,10 +75,10 @@ Each linguistic element exists at precise **3D coordinates**:
 ## ⚡ Quick Start
 
 ### Installation
+***Lingo is currently in active development and thus not currently available as a crate.***
 
-```toml
-[dependencies]
-lingo = "0.1.0"
+```bash
+git clone https://github.com/RobAntunes/lingodb.git
 ```
 
 ### Create Your First Query
@@ -279,13 +269,6 @@ let query = QueryBuilder::find("t")
 - ✅ **100 morphemes** covering 90% of academic vocabulary
 - ✅ **Etymology mapping** for Greek, Latin, Germanic origins
 
-### Roadmap
-
-- 🚧 **Spanish** - Q2 2024
-- 🚧 **French** - Q3 2024
-- 🚧 **German** - Q4 2024
-- 🔮 **Mandarin** - 2025
-
 ---
 
 ## 🎯 Use Cases
@@ -369,31 +352,6 @@ results = executor.execute(
 
 ---
 
-## 📈 Roadmap
-
-### 🎯 **v0.2.0 - Enhanced Discovery**
-
-- [ ] Real-time morpheme learning
-- [ ] Semantic embeddings integration
-- [ ] Multi-language morphology
-- [ ] RESTful API server
-
-### 🎯 **v0.3.0 - Advanced Analytics**
-
-- [ ] Etymology visualization
-- [ ] Frequency analysis over time
-- [ ] Domain-specific vocabularies
-- [ ] Machine learning integration
-
-### 🎯 **v1.0.0 - Production Ready**
-
-- [ ] Web assembly bindings
-- [ ] Cloud deployment tools
-- [ ] Enterprise security features
-- [ ] Performance optimizations
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions! Here's how to get started:
@@ -465,7 +423,7 @@ This project is licensed under the **Functional Source License 1.1 (FSL-1.1-ALv2
 
 <div align="center">
 
-**[⭐ Star us on GitHub](https://github.com/RobAntunes/lingo)** • **[📖 Read the Docs](https://docs.rs/lingo)** • **[💬 Join the Discussion](https://github.com/RobAntunes/lingo/discussions)**
+**[⭐ Star us on GitHub](https://github.com/RobAntunes/lingo)** • **[💬 Join the Discussion](https://github.com/RobAntunes/lingo/discussions)**
 
 _Made with ❤️ by the Lingo Team_
 
