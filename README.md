@@ -364,7 +364,7 @@ We welcome contributions! Here's how to get started:
 ### Development Setup
 
 ```bash
-git clone https://github.com/cira/lingo.git
+git clone https://github.com/RobAntunes/lingodb.git
 cd lingo
 cargo build
 cargo test
@@ -388,13 +388,6 @@ cargo run --example build_standard_db
 - ✅ Modify and distribute for permitted purposes
 - ✅ Non-commercial research and education
 - ❌ Commercial competing products (until Apache 2.0 conversion)
-
-### Enterprise Support (Coming Soon)
-
-- 🎯 Professional consulting
-- 🎯 Custom language packs
-- 🎯 Priority support
-- 🎯 On-premise deployment
 
 ---
 
@@ -423,7 +416,7 @@ This project is licensed under the **Functional Source License 1.1 (FSL-1.1-ALv2
 
 <div align="center">
 
-**[⭐ Star us on GitHub](https://github.com/RobAntunes/lingo)** • **[💬 Join the Discussion](https://github.com/RobAntunes/lingo/discussions)**
+**[⭐ Star us on GitHub](https://github.com/RobAntunes/lingodb)** • **[💬 Join the Discussion](https://github.com/RobAntunes/lingodb/discussions)**
 
 _Made with ❤️ by the Lingo Team_
 
